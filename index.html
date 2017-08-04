@@ -100,8 +100,8 @@ function search() {
   seRequest('GET', '/questions', params, '', (error, data) => {
     if (error) {
       g.searchResults.style.color = "red";
-      g.searchResutls.innerHTML = "";
-      g.searchRestuls.textContent = error;
+      g.searchResults.innerHTML = "";
+      g.searchResults.textContent = error;
       return;
     } else {
       g.searchResults.style.color = "";
