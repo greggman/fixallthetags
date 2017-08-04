@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+    <meta charset="utf8">
+    <style>
+        body {
+            font-family: monospace;
+        }
+        label {
+            display: block;
+        }
+        area {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<h1>FixAllTheTags!</h1>
+<div id="init-area">
+    ...initializing...
+</div>
+<div id="login-area" class="area">
+    <button id="login">Login to Stackoverflow</button>
+    <div class="results">
+
+    </div>
+</div>
+<div id="search-area" class="area">
+    <label for="search">search:</label><input type="text" id="search"></input>
+    <div class="results">
+
+    </div>
+</div>
+<div id="fix-area" class="area">
+    <label for="remove">tags to remove:</label><input type="text" id="remove"></input>
+    <label for="add">tags to add:</label><input type="text" id="add"></input>
+    <div class="results">
+
+    </div>
+</div>
+
+
+</body>
+<script src='https://api.stackexchange.com/js/2.0/all.js'></script>
+<script>
+const $ = document.querySelector.bind(document);
+let g = {
+  expirationDate: null,
+  accessToken: null,
+  baseUrl: 'https://api.stackexchange.com/2.2',
+  channelUrl: makeLocalUrl('blank.html'),
+  loginResults: $("#login-area .results"),
+  searchResults: $("#search-area .results"),
+  clientId: 10511,
+  key: 'yOk9EKF1oHV)qVIkp5PKnA((',
+};
+
+
+SE.init({
+    clientId: g.clientId,
+    key: g.key,
+    channelUrl: g.channelUrl,
+    complete: (data) => {
+      // { version: 'some-unique-string' }
+      $("#init-area").style.display = "none";
+      $("#login-area").style.display = "block";
+    },
+});
+
+function authenticate() {
+  $("#login").disabled = true;
+  SE.authenticate({
+      success: (data) => {
+        // { accessToken: '12345',
+        //   expirationDate: new Date(...),
+        //   networkUsers: [...] }
+        loginResults.style.color = "";
+        $("#login-area").style.display = "none";
+        $("#search-area").style.display = "block";
+      },
+      error: (data) => {
+        // { errorName: 'access_denied',
+        // errorMessage: 'the unicorns are not amused' }
+        g.loginResults.style.color = "red";
+        g.loginResults.textContent = `${data.errorName}: ${data.errorMessage}`;
+        $("#login").disabled = false;
+      },
+      scope: ['write_access'],
+      networkUsers: false,
+  });
+}
+
+function search() {
+  const tags = $('#search').value.trim().split(/\s+/);
+  const params = {
+    order: 'desc',
+    site: 'stackoverflow',
+    sort: 'activity',
+    tagged: tags.join(';'),
+  };
+  seRequest('GET', '/questions', params, '', (error, data) => {
+    if (error) {
+      searchResults.style.color = "red";
+      searchResutls.innerHTML = "";
+      searchRestuls.textContent = error;
+      return;
+    } else {
+      searchResults.style.color = "";
+      searchResutls.innerHTML = "";
+      data.items.forEach(q => {
+        const question = createElement('div', 'question');
+        const title = createElement('a', 'title', question, q.title);
+        title.href = q.link;
+        const user = createElement('a', 'user', question, q.owner.display_name);
+        user.href = q.owner.link;
+        const image = createElement('img', 'avatar', question);
+        image.src = q.owner.profile_image;
+        const tags = createElement('div', 'tags', question);
+        q.tags.forEach(tag => {
+          createElement('div', 'tag', tags, tag);
+        });
+        searchResults.appendChild(question);
+      });
+    }
+  });
+}
+
+function createElem(type, className, parent, textContent) {
+  const elem = document.createElement(type);
+  if (content) {
+    elem.textContent = textContent;
+  }
+  if (className) {
+    elem.className = className;
+  }
+  if (parent) {
+    parent.appendChild(elem);
+  }
+  return elem;
+}
+
+function seRequest(method, path, params, data, callback) {
+  const query = Object.assign({}, params, {
+    access_token: g.accessToken,
+  });
+  const queryStr = paramsToSting(query);
+  const url = `&{$g.baseUrl}${path}?${queryStr}`;
+  xhr(method, url, data, callback);
+}
+
+function paramsToString(params) {
+  return Object.keys(params).map((key) => {
+    return `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+  }).join('&');
+}
+
+function xhr(method, url, data, callback) {
+  const request = new XMLHttpRequest();
+  request.addEventListener('load', () => {
+    try {
+      const data = JSON.parse(request.response);
+      callback(null, data);
+    } catch (e) {
+      callback(e);
+    }
+  });
+  request.addEventListener('error', (e) => {
+    callback(e);
+  });
+  request.open(method, url);
+  request.send(data || '');
+}
+
+
+function makeLocalUrl(path) {
+  const a = document.createElement('a');
+  a.href = path;
+  return a.href;
+}
+
+$("#login").addEventListener('click', authenticate);
+$("#search").addEventListener('change', search);
+
+</script>
+</html>
