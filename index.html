@@ -73,7 +73,7 @@ function authenticate() {
         // { accessToken: '12345',
         //   expirationDate: new Date(...),
         //   networkUsers: [...] }
-        loginResults.style.color = "";
+        g.loginResults.style.color = "";
         $("#login-area").style.display = "none";
         $("#search-area").style.display = "block";
       },
@@ -99,13 +99,13 @@ function search() {
   };
   seRequest('GET', '/questions', params, '', (error, data) => {
     if (error) {
-      searchResults.style.color = "red";
-      searchResutls.innerHTML = "";
-      searchRestuls.textContent = error;
+      g.searchResults.style.color = "red";
+      g.searchResutls.innerHTML = "";
+      g.searchRestuls.textContent = error;
       return;
     } else {
-      searchResults.style.color = "";
-      searchResutls.innerHTML = "";
+      .searchResults.style.color = "";
+      .searchResutls.innerHTML = "";
       data.items.forEach(q => {
         const question = createElement('div', 'question');
         const title = createElement('a', 'title', question, q.title);
@@ -118,10 +118,18 @@ function search() {
         q.tags.forEach(tag => {
           createElement('div', 'tag', tags, tag);
         });
-        searchResults.appendChild(question);
+        const button = createElement('button', 'fix', question, 'fix');
+        button.addEventListener('click', (e) => {
+          fixTags(q);
+        });
+        g.searchResults.appendChild(question);
       });
     }
   });
+}
+
+function fixTags(q) {
+  console.log("fix:", q);
 }
 
 function createElem(type, className, parent, textContent) {
