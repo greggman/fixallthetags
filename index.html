@@ -288,14 +288,30 @@ function createElement(type, className, parent, textContent) {
 }
 
 function seRequest(method, path, params, data, callback) {
-  const query = Object.assign({}, params, {
-    access_token: g.accessToken,
-    key: g.key,
-    site: g.site,
-  });
-  const queryStr = paramsToString(query);
-  const url = `${g.baseUrl}${path}?${queryStr}`;
-  xhr(method, url, data, (error, data) => {
+  let queryString = '';
+  let sendArg;
+  if (method.toLowerCase() === 'GET') {
+    const query = Object.assign({}, params, {
+      access_token: g.accessToken,
+      key: g.key,
+      site: g.site,
+    });
+    queryString = '?' + paramsToString(query);
+    sendArg = data || '';
+  } else {
+    const fd = new FormData();
+    const items = Object.assign({}, params, {
+      access_token: g.accessToken,
+      key: g.key,
+      site: g.site,
+    });
+    Object.keys(items).forEach(key => {
+      fd.append(key, items[key]);
+    });
+    sendArg = fd;
+  }
+  const url = `${g.baseUrl}${path}${queryString}`;
+  xhr(method, url, sendArg, (error, data) => {
     if (error || data.error_id || data.error_message || data.error_name) {
       callback(error || data);
     } else {

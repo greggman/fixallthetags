@@ -34,6 +34,7 @@ window.XMLHttpRequest.prototype.open = function(method, url) {
   }
 };
 window.XMLHttpRequest.prototype.send = function(data) {
+  console.log("sending:", data);
   this.events['load']({});
 };
 
