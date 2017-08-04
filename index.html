@@ -104,8 +104,8 @@ function search() {
       g.searchRestuls.textContent = error;
       return;
     } else {
-      .searchResults.style.color = "";
-      .searchResutls.innerHTML = "";
+      g.searchResults.style.color = "";
+      g.searchResutls.innerHTML = "";
       data.items.forEach(q => {
         const question = createElement('div', 'question');
         const title = createElement('a', 'title', question, q.title);
