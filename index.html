@@ -150,8 +150,8 @@ function seRequest(method, path, params, data, callback) {
   const query = Object.assign({}, params, {
     access_token: g.accessToken,
   });
-  const queryStr = paramsToSting(query);
-  const url = `&{$g.baseUrl}${path}?${queryStr}`;
+  const queryStr = paramsToString(query);
+  const url = `${g.baseUrl}${path}?${queryStr}`;
   xhr(method, url, data, callback);
 }
 
