@@ -73,6 +73,9 @@ function authenticate() {
         // { accessToken: '12345',
         //   expirationDate: new Date(...),
         //   networkUsers: [...] }
+        console.log(data);
+        g.accessToken = data.accessToken;
+        g.expirationDate = data.expirationDate;
         g.loginResults.style.color = "";
         $("#login-area").style.display = "none";
         $("#search-area").style.display = "block";
@@ -106,6 +109,7 @@ function search() {
     } else {
       g.searchResults.style.color = "";
       g.searchResults.innerHTML = "";
+      console.log(data);
       data.items.forEach(q => {
         const question = createElement('div', 'question');
         const title = createElement('a', 'title', question, q.title);
