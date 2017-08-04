@@ -233,7 +233,12 @@ function search() {
 
 function updateNewTags() {
   g.questions.forEach((info) => {
-    const newTags = info.tags.filter(t => g.removeTags.indexOf(t) < 0).concat(g.addTags);
+    const newTags = info.tags.filter(tag => g.removeTags.indexOf(tag) < 0);
+    g.addTags.forEach(tag => {
+      if (newTags.indexOf(tag) < 0) {
+        newTags.push(tag);
+      }
+    });
     info.newTags = newTags;
     info.newTagsElem.innerHTML = "";
     newTags.forEach(tag => {
