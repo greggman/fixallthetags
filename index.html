@@ -153,10 +153,17 @@ function createElem(type, className, parent, textContent) {
 function seRequest(method, path, params, data, callback) {
   const query = Object.assign({}, params, {
     access_token: g.accessToken,
+    key: g.key,
   });
   const queryStr = paramsToString(query);
   const url = `${g.baseUrl}${path}?${queryStr}`;
-  xhr(method, url, data, callback);
+  xhr(method, url, data, (error, data) => {
+    if (error || data.error_id || data.error_message || data.error_name) {
+      callback(error || data);
+    } else {
+      callback(null, data);
+    }
+  });
 }
 
 function paramsToString(params) {
