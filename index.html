@@ -184,7 +184,7 @@ function search() {
     order: 'desc',
     sort: 'activity',
     tagged: tags.join(';'),
-    filter: '!9YdnSJ*_T',
+    filter: '8G3NhCJa', // unsafe=true + question.body_markdown
   };
   seRequest('GET', '/questions', params, '', (error, data) => {
     if (error) {
