@@ -2,15 +2,99 @@
 <head>
     <meta charset="utf8">
     <style>
-        body {
-            font-family: monospace;
-        }
-        label {
-            display: block;
-        }
-        .area {
-            display: none;
-        }
+body {
+    font-family: monospace;
+}
+label {
+    display: block;
+}
+.area {
+    display: none;
+}
+.question {
+    margin: .5em;
+    background: #eee;
+    padding: .5em;
+    display: grid;
+    grid-template-columns: 64px 10px auto auto;
+    grid-template-rows: 1.5em 1.5em 1.8em 1fr;
+    grid-template-areas:
+        "avatar . title title"
+        "avatar . owner owner"
+        "avatar . tags new-tags"
+        ". . fix fix";
+}
+
+.avatar {
+    width: 64px;
+    height: 64px;
+    grid-area: avatar;
+    background: grey;
+}
+
+.title {
+    display: block;
+    grid-area: title;
+}
+
+.title:before {
+    content: "Q: ";
+    background: #CCC;
+    width: 6em;
+    display: inline-block;
+}
+
+.tags {
+    /* display: flex; */
+    grid-area: tags;
+}
+
+.tags:before {
+    content: "old tags:";
+    width: 6em;
+    background: #CCC;
+    display: inline-block;
+}
+
+.new-tags {
+    /* display: flex; */
+    grid-area: new-tags;
+}
+
+.new-tags:before {
+    content: "new tags:";
+    width: 6em;
+    background: #CCC;
+    display: inline-block;
+}
+
+.tag {
+    margin: .1em;
+    padding: .1em;
+    background: #CCC;
+}
+
+.fix {
+    padding: .5em;
+    width: 5em;
+    background: #ACE;
+    grid-area: fix;
+}
+
+.user {
+    grid-area: owner;
+}
+
+.user:before {
+    content: "owner:";
+    background: #CCC;
+    width: 6em;
+    display: inline-block;
+}
+
+.tag {
+    display: inline-block;
+}
     </style>
 </head>
 <body>
@@ -25,14 +109,11 @@
     </div>
 </div>
 <div id="search-area" class="area">
-    <label for="search">search:</label><input type="text" id="search"></input>
-    <div class="results">
-
+    <label for="search">Tags to search for:</label><input type="text" id="search"></input>
+    <div id="fix-area" class="area">
+        <label for="remove">tags to remove:</label><input type="text" id="remove"></input>
+        <label for="add">tags to add:</label><input type="text" id="add"></input>
     </div>
-</div>
-<div id="fix-area" class="area">
-    <label for="remove">tags to remove:</label><input type="text" id="remove"></input>
-    <label for="add">tags to add:</label><input type="text" id="add"></input>
     <div class="results">
 
     </div>
@@ -41,6 +122,7 @@
 
 </body>
 <script src='https://api.stackexchange.com/js/2.0/all.js'></script>
+<!--<script src='mock-se.js'></script>-->
 <script>
 const $ = document.querySelector.bind(document);
 let g = {
@@ -52,6 +134,8 @@ let g = {
   searchResults: $("#search-area .results"),
   clientId: 10511,
   key: 'yOk9EKF1oHV)qVIkp5PKnA((',
+  removeTags: [],
+  addTags: [],
 };
 
 
@@ -93,7 +177,7 @@ function authenticate() {
 }
 
 function search() {
-  const tags = $('#search').value.trim().split(/\s+/);
+  const tags = parseTags($('#search').value)
   const params = {
     order: 'desc',
     site: 'stackoverflow',
@@ -104,13 +188,14 @@ function search() {
     if (error) {
       g.searchResults.style.color = "red";
       g.searchResults.innerHTML = "";
-      g.searchResults.textContent = error;
+      g.searchResults.textContent = JSON.stringify(error);
       return;
     } else {
       g.searchResults.style.color = "";
       g.searchResults.innerHTML = "";
+      $("#fix-area").style.display = "block";
       console.log(data);
-      data.items.forEach(q => {
+      g.questions = data.items.map(q => {
         const question = createElement('div', 'question');
         const title = createElement('a', 'title', question, q.title);
         title.href = q.link;
@@ -122,23 +207,73 @@ function search() {
         q.tags.forEach(tag => {
           createElement('div', 'tag', tags, tag);
         });
+        const newTags = createElement('div', 'new-tags', question);
         const button = createElement('button', 'fix', question, 'fix');
+        const info = {
+          button: button,
+          newTagsElem: newTags,
+          tags: q.tags,
+          question: q,
+          questionElem: question,
+          buttonElem: button,
+        };
         button.addEventListener('click', (e) => {
-          fixTags(q);
+          fixTags(info);
         });
         g.searchResults.appendChild(question);
+        return info;
       });
+
+      updateNewTags();
     }
   });
 }
 
-function fixTags(q) {
-  console.log("fix:", q);
+function updateNewTags() {
+  g.questions.forEach((info) => {
+    const newTags = info.tags.filter(t => g.removeTags.indexOf(t) < 0).concat(g.addTags);
+    info.newTags = newTags;
+    info.newTagsElem.innerHTML = "";
+    newTags.forEach(tag => {
+      createElement('div', 'tag', info.newTagsElem, tag);
+    });
+  });
+}
+
+
+function addTags() {
+  g.addTags = parseTags($("#add").value);
+  updateNewTags();
+}
+
+function removeTags() {
+  g.removeTags = parseTags($("#remove").value);
+  updateNewTags();
+}
+
+function fixTags(info) {
+  info.questionElem.disabled = true;
+  info.buttonElem.disabled = true;
+  const q = info.question;
+  const id = q.question_id;
+  const params = {
+    tags: info.newTags.join(";"),
+    preview: true,
+    comment: 'edited tags',
+  };
+  seRequest('POST', `/question/${id}/edit`, params, '', (error, data) => {
+    console.log("ERROR:", error);
+    console.log("DATA:", data);
+  });
+}
+
+function parseTags(s) {
+  return s.trim().split(/[\n\r\t ;,]+/);
 }
 
 function createElement(type, className, parent, textContent) {
   const elem = document.createElement(type);
-  if (content) {
+  if (textContent) {
     elem.textContent = textContent;
   }
   if (className) {
@@ -198,6 +333,8 @@ function makeLocalUrl(path) {
 
 $("#login").addEventListener('click', authenticate);
 $("#search").addEventListener('change', search);
+$("#add").addEventListener('change', addTags);
+$("#remove").addEventListener('change', removeTags);
 
 </script>
 </html>
