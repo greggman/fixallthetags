@@ -261,7 +261,7 @@ function fixTags(info) {
     preview: true,
     comment: 'edited tags',
   };
-  seRequest('POST', `/question/${id}/edit`, params, '', (error, data) => {
+  seRequest('POST', `/questions/${id}/edit`, params, '', (error, data) => {
     console.log("ERROR:", error);
     console.log("DATA:", data);
   });

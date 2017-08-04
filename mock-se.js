@@ -25,7 +25,7 @@ window.XMLHttpRequest.prototype.open = function(method, url) {
   this.url = url;
   const u = new URL(url);
   console.log(u);
-  if ((/\d\/question\/[^/]+\/edit/).test(u.pathname)) {
+  if ((/\d\/questions\/[^/]+\/edit/).test(u.pathname)) {
     this.response = editResponse;
   } else if ((/\d\/questions/).test(u.pathname)) {
     this.response = questionResponse;
