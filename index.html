@@ -129,6 +129,7 @@ const $ = document.querySelector.bind(document);
 let g = {
   expirationDate: null,
   accessToken: null,
+  site: 'stackoverflow',
   baseUrl: 'https://api.stackexchange.com/2.2',
   channelUrl: makeLocalUrl('blank.html'),
   loginResults: $("#login-area .results"),
@@ -181,7 +182,6 @@ function search() {
   const tags = parseTags($('#search').value)
   const params = {
     order: 'desc',
-    site: 'stackoverflow',
     sort: 'activity',
     tagged: tags.join(';'),
   };
@@ -291,6 +291,7 @@ function seRequest(method, path, params, data, callback) {
   const query = Object.assign({}, params, {
     access_token: g.accessToken,
     key: g.key,
+    site: g.site,
   });
   const queryStr = paramsToString(query);
   const url = `${g.baseUrl}${path}?${queryStr}`;
