@@ -94,8 +94,10 @@ function search() {
         const questionElem = createElement('div', 'question');
         const titleElem = createElement('a', 'title', questionElem, q.title);
         titleElem.href = q.link;
+        titleElem.target = "_blank";
         const userElem = createElement('a', 'user', questionElem, q.owner.display_name);
         userElem.href = q.owner.link;
+        userElem.target = "_blank";
         const imageElem = createElement('img', 'avatar', questionElem);
         imageElem.src = q.owner.profile_image;
         imageElem.onerror = useMissingImage;
